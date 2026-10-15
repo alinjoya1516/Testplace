@@ -1,0 +1,18 @@
+{
+  "caseIdTagPrefix": "@TC-",
+  "requirementTagPrefix": "@REQ-",
+  "jiraTagPrefix": "@JIRA-",
+  "priorityTags": ["@critical", "@standard"],
+  "manualTag": "@manual",
+  "quarantineTag": "@quarantine",
+  "descriptionFields": {
+    "objective": "Objective:",
+    "testData": "Test data:",
+    "cleanup": "Cleanup:"
+  },
+  "commentKeywords": {
+    "openQuestion": "TODO:",
+    "note": "Note:"
+  },
+  "requiredTagPrefixes": []
+}

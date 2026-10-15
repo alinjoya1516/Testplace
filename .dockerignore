@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/coverage
+**/.angular
+**/*.tsbuildinfo
+apps/api/src/generated
+.git
+.github
+.env
+.env.*
+test-results
+playwright-report

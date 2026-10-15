@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "jest"],
+  "rules": {
+    "typescript/no-floating-promises": "error",
+    "typescript/no-explicit-any": "error"
+  },
+  "env": {
+    "node": true
+  },
+  "ignorePatterns": ["**/generated/**", "**/dist/**"]
+}

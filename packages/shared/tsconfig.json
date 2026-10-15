@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2023",
+    "strict": true,
+    "declaration": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "types": [],
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src"]
+}

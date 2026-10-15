@@ -1,0 +1,120 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  EXECUTOR
+  READER
+}
+
+enum TestCaseStatus {
+  READY
+  DRAFT
+  RETIRED
+}
+
+enum RequirementSource {
+  TAG
+  FILE
+}
+
+enum ImportStatus {
+  APPLIED
+  REJECTED
+}
+
+model User {
+  id          String           @id @default(uuid())
+  directoryId String           @unique
+  name        String
+  email       String
+  role        Role             @default(READER)
+  createdAt   DateTime         @default(now())
+  imports     ImportRevision[]
+}
+
+model Requirement {
+  /// Requirement key as written in tags, e.g. "REQ-12".
+  id          String            @id
+  title       String?
+  description String?
+  priority    String?
+  source      RequirementSource
+  testCases   TestCase[]
+}
+
+model ImportRevision {
+  id        Int               @id @default(autoincrement())
+  createdAt DateTime          @default(now())
+  author    User              @relation(fields: [authorId], references: [id])
+  authorId  String
+  gitCommit String?
+  status    ImportStatus
+  report    Json
+  versions  TestCaseVersion[]
+}
+
+/// Current state of a case. Tags, priority and requirements are copied from the
+/// current version so that lists can be filtered without joining versions.
+model TestCase {
+  /// Case key as written in tags, e.g. "TC-PRF-01" or "TC-LOG-03.2".
+  id               String            @id
+  status           TestCaseStatus
+  priority         String?
+  tags             String[]
+  jiraKeys         String[]
+  requirements     Requirement[]
+  currentVersion   TestCaseVersion?  @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  currentVersionId String?           @unique
+  versions         TestCaseVersion[] @relation("Versions")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+/// Immutable snapshot of a case, created only when its content hash changes.
+/// Source file and line are the exception: they follow the latest import.
+model TestCaseVersion {
+  id             String         @id @default(uuid())
+  testCase       TestCase       @relation("Versions", fields: [testCaseId], references: [id])
+  testCaseId     String
+  currentOf      TestCase?      @relation("CurrentVersion")
+  number         Int
+  revision       ImportRevision @relation(fields: [revisionId], references: [id])
+  revisionId     Int
+  hash           String
+  title          String
+  objective      String?
+  testData       String?
+  preconditions  String[]
+  cleanup        String?
+  notes          String[]
+  openQuestions  String[]
+  priority       String?
+  tags           String[]
+  requirementIds String[]
+  jiraKeys       String[]
+  sourceFile     String
+  sourceLine     Int
+  steps          Step[]
+  createdAt      DateTime       @default(now())
+
+  @@unique([testCaseId, number])
+}
+
+model Step {
+  id             String          @id @default(uuid())
+  version        TestCaseVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  versionId      String
+  position       Int
+  action         String
+  expectedResult String
+
+  @@unique([versionId, position])
+}
