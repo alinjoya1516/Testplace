@@ -27,9 +27,14 @@ npm run dev:web      # front sur http://localhost:4200, /api redirigé vers l'AP
 
 ```sh
 npm run lint
-npm test
+npm test             # tests unitaires
+npm run test:int     # tests d'intégration, sur la base TEST_DATABASE_URL (vidée par les tests)
 npm run build
 ```
+
+## Authentification
+
+En attendant OpenID Connect, `AUTH_MODE=dev` attribue chaque requête à un administrateur fictif « Dev Admin ». Ce mode est refusé si `NODE_ENV=production`, ce qui est le cas de l'image Docker : sans authentification, seul `/api/health` y répond.
 
 ## Lancement complet avec Docker
 

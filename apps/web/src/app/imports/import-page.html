@@ -1,0 +1,126 @@
+<h1>Import des cas de test</h1>
+
+<mat-card appearance="outlined">
+  <mat-card-content>
+    <p>Archive <code>.zip</code> contenant les fichiers <code>.feature</code>.</p>
+    <div class="upload">
+      <input #fileInput type="file" accept=".zip" hidden (change)="chooseArchive($event)" />
+      <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="uploading()">
+        Choisir une archive
+      </button>
+      <span class="file-name">{{ archive()?.name ?? 'Aucune archive choisie' }}</span>
+      <button mat-flat-button type="button" (click)="upload()" [disabled]="!archive() || uploading()">
+        Importer
+      </button>
+    </div>
+    @if (uploading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    @if (error(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+    }
+  </mat-card-content>
+</mat-card>
+
+@if (revision(); as rev) {
+  <section aria-labelledby="report-title">
+    <h2 id="report-title">
+      Révision n° {{ rev.id }} :
+      <span [class]="rev.status === 'APPLIED' ? 'applied' : 'rejected'">{{ statusLabels[rev.status] }}</span>
+    </h2>
+    <p class="meta">
+      {{ rev.createdAt | date: 'dd/MM/yyyy HH:mm' }} · {{ rev.authorName }} · {{ rev.archiveName }}
+      @if (rev.gitCommit) {
+        · commit <code>{{ rev.gitCommit }}</code>
+      }
+    </p>
+
+    @if (rev.status === 'REJECTED') {
+      <p class="rejected">Import rejeté : aucun cas n'a été modifié. Corrigez les erreurs ci-dessous puis réimportez.</p>
+      <h3>Erreurs ({{ rev.report.errors.length }})</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Fichier</th><th>Ligne</th><th>Message</th></tr>
+          </thead>
+          <tbody>
+            @for (issue of rev.report.errors; track $index) {
+              <tr><td>{{ issue.file }}</td><td>{{ issue.line ?? '—' }}</td><td>{{ issue.message }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <dl class="counts">
+        <div><dt>Créés</dt><dd>{{ rev.counts.created }}</dd></div>
+        <div><dt>Modifiés</dt><dd>{{ rev.counts.modified }}</dd></div>
+        <div><dt>Restaurés</dt><dd>{{ rev.counts.restored }}</dd></div>
+        <div><dt>Retirés</dt><dd>{{ rev.counts.retired }}</dd></div>
+        <div><dt>Inchangés</dt><dd>{{ rev.counts.unchanged }}</dd></div>
+      </dl>
+      @for (group of [
+        { label: 'Créés', ids: rev.report.created },
+        { label: 'Modifiés', ids: rev.report.modified },
+        { label: 'Restaurés', ids: rev.report.restored },
+        { label: 'Retirés', ids: rev.report.retired }
+      ]; track group.label) {
+        @if (group.ids.length > 0) {
+          <p class="ids"><strong>{{ group.label }} :</strong> {{ group.ids.join(', ') }}</p>
+        }
+      }
+    }
+
+    @if (rev.report.warnings.length > 0) {
+      <h3>Avertissements ({{ rev.report.warnings.length }})</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Fichier</th><th>Ligne</th><th>Message</th></tr>
+          </thead>
+          <tbody>
+            @for (issue of rev.report.warnings; track $index) {
+              <tr><td>{{ issue.file }}</td><td>{{ issue.line ?? '—' }}</td><td>{{ issue.message }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (rev.report.ignoredFiles.length > 0) {
+      <p class="ids"><strong>Fichiers ignorés (pas des .feature) :</strong> {{ rev.report.ignoredFiles.join(', ') }}</p>
+    }
+  </section>
+}
+
+<section aria-labelledby="history-title">
+  <h2 id="history-title">Historique des imports</h2>
+  @if (history().length === 0) {
+    <p>Aucun import pour l'instant.</p>
+  } @else {
+    <div class="table-wrapper">
+      <table class="history">
+        <thead>
+          <tr>
+            <th>N°</th><th>Date</th><th>Auteur</th><th>Archive</th><th>Statut</th>
+            <th>Créés</th><th>Modifiés</th><th>Retirés</th><th>Erreurs</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of history(); track item.id) {
+            <tr [class.selected]="item.id === revision()?.id">
+              <td><button mat-button type="button" (click)="show(item.id)">{{ item.id }}</button></td>
+              <td>{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ item.authorName }}</td>
+              <td>{{ item.archiveName }}</td>
+              <td [class]="item.status === 'APPLIED' ? 'applied' : 'rejected'">{{ statusLabels[item.status] }}</td>
+              <td>{{ item.counts.created }}</td>
+              <td>{{ item.counts.modified }}</td>
+              <td>{{ item.counts.retired }}</td>
+              <td>{{ item.counts.errors }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

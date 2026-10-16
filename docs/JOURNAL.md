@@ -28,3 +28,26 @@
   - En-têtes de sécurité (helmet), CSRF, HTTPS : incrément 3.
   - Les mots-clés de commentaire et de description sont sensibles à la casse.
 - Prochaine étape : import d'une archive `.zip` par téléversement (EF-01, EF-02) : extraction et validation de l'archive, enregistrement des versions, cas retirés, révision et rapport, écran Import ; puis utilisateur fictif de développement.
+
+## 2026-10-16 — Incrément 1
+
+- Fait :
+  - Lecture de l'archive `.zip` en mémoire (`feature-archive.ts`) : seuls les `.feature` sont lus, les autres fichiers sont listés dans le rapport, les fichiers système macOS et Windows ignorés ; rejet des chemins dangereux, des archives corrompues, trop grosses une fois décompressées (vérifié sur les tailles déclarées, avant décompression), avec trop de fichiers, sans `.feature`, ou contenant un fichier non UTF-8.
+  - `POST /api/imports` (201 appliqué, 422 rejeté, rapport dans les deux cas ; 400 sans archive ou commit invalide ; 413 au-delà de la taille maximale), `GET /api/imports`, `GET /api/imports/{id}`.
+  - Import en base dans une transaction, sérialisé par un verrou PostgreSQL : nouvelles versions seulement si l'empreinte change, cas absents retirés, cas retirés restaurés, emplacement source mis à jour sans nouvelle version, exigences créées depuis les tags. Les imports rejetés sont enregistrés sans rien modifier d'autre.
+  - Configuration de l'environnement validée au démarrage (`app-config.ts`) ; garde d'authentification globale (toutes les routes privées sauf `@Public()`) ; utilisateur fictif « Dev Admin » quand `AUTH_MODE=dev`, refusé si `NODE_ENV=production`.
+  - Écran Import : téléversement, rapport (compteurs, identifiants, erreurs et avertissements avec fichier et ligne, fichiers ignorés), historique cliquable. Interface en locale `fr-FR`.
+  - Tests d'intégration sur PostgreSQL (`npm run test:int`) : critères 1 et 2 vérifiés de bout en bout côté API. CI avec un service PostgreSQL.
+- Décisions :
+  - Validées avant de coder : utilisateur fictif et garde de production ; codes de réponse de `POST /api/imports` ; limites de 5 Mo pour l'archive, 20 Mo décompressée et 1 000 fichiers, réglables par variables d'environnement.
+  - Nouvelle dépendance : `fflate` (lecture du zip, sans dépendance).
+  - Une archive refusée par la limite de taille (413) n'est pas enregistrée comme révision : elle est arrêtée avant d'atteindre le service.
+  - Restauré et modifié ne s'excluent pas : un cas retiré qui revient avec un contenu changé apparaît dans les deux listes.
+  - `prisma migrate reset` est bloqué par Prisma quand un agent IA le lance. Les tests d'intégration appliquent donc les migrations avec `prisma migrate deploy` puis vident les tables par `TRUNCATE`, uniquement sur une base dont l'URL diffère de `DATABASE_URL` et dont le nom contient « test ».
+  - Dans l'image Docker (`NODE_ENV=production`), l'import répond 401 tant qu'OpenID Connect n'est pas en place (incrément 3).
+  - L'API écoute sur `127.0.0.1` par défaut (variable `HOST`) : en mode dev, quiconque atteint le port est administrateur. L'image Docker écoute sur `0.0.0.0`, son port n'étant publié que sur localhost.
+  - Vérification manuelle faite dans l'interface : import du jeu d'exemple, import rejeté avec fichier et ligne, fichier non zip rejeté.
+- Ouvert :
+  - Les noms d'archive avec accents peuvent être mal décodés par multer (affichage seulement).
+  - Le parcours de l'écran Import n'est pas encore couvert par Playwright.
+- Prochaine étape : liste des cas avec recherche et filtres (EF-03), fiche de cas avec historique des versions (EF-04), tests Playwright des parcours import et consultation. Fin de l'incrément 1.

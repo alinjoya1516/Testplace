@@ -13,8 +13,9 @@
   "scripts": {
     "setup": "npm run build -w @testplace/shared && npm run generate -w @testplace/api",
     "build": "npm run build -w @testplace/shared && npm run build -w @testplace/api && npm run build -w @testplace/web",
-    "lint": "oxlint --type-aware --deny-warnings apps/api/src apps/web/src packages/shared/src",
+    "lint": "oxlint --type-aware --deny-warnings apps/api/src apps/api/test apps/web/src packages/shared/src",
     "test": "npm run setup && npm test -w @testplace/api",
+    "test:int": "npm run setup && npm run test:int -w @testplace/api",
     "dev:api": "npm run setup && npm run start:dev -w @testplace/api",
     "dev:web": "npm start -w @testplace/web",
     "db:up": "docker compose up -d db",

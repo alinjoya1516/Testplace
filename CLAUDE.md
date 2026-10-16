@@ -35,6 +35,7 @@ Ne la remets pas en question sans que je le demande.
 | Lancer tout en Docker | `docker compose up -d --build` (http://localhost:8080) |
 | Lint | `npm run lint` |
 | Tests unitaires | `npm test` |
+| Tests d'intégration | `npm run db:up` puis `npm run test:int` (base `TEST_DATABASE_URL`, vidée par les tests) |
 | Build | `npm run build` |
 | Tests de bout en bout | — (Playwright, à venir dans l'incrément 1) |
 | Migration de base | `npm run db:migrate` (crée et applique une migration en dev) ; en Docker, `prisma migrate deploy` s'exécute au démarrage |

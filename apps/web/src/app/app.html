@@ -1,5 +1,9 @@
-<mat-toolbar color="primary">
-  <span>Gestion des tests</span>
+<mat-toolbar>
+  <span class="title">Gestion des tests</span>
+  <nav>
+    <a mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
+    <a mat-button routerLink="/imports" routerLinkActive="active">Import</a>
+  </nav>
 </mat-toolbar>
 <main>
   <router-outlet />

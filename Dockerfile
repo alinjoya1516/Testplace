@@ -12,6 +12,7 @@ FROM node:24-slim AS runtime
 # The Prisma schema engine (used by migrate deploy) needs OpenSSL.
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
+ENV HOST=0.0.0.0
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
