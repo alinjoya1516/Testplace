@@ -37,7 +37,7 @@ Ne la remets pas en question sans que je le demande.
 | Tests unitaires | `npm test` |
 | Tests d'intégration | `npm run db:up` puis `npm run test:int` (base `TEST_DATABASE_URL`, vidée par les tests) |
 | Build | `npm run build` |
-| Tests de bout en bout | — (Playwright, à venir dans l'incrément 1) |
+| Tests de bout en bout | `npm run db:up` puis `npm run test:e2e` (build, puis Playwright sur le port 3100 et la base `TEST_DATABASE_URL`) ; une fois : `npx playwright install chromium` |
 | Migration de base | `npm run db:migrate` (crée et applique une migration en dev) ; en Docker, `prisma migrate deploy` s'exécute au démarrage |
 
 ## Plan d'incréments

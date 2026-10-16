@@ -29,8 +29,11 @@ npm run dev:web      # front sur http://localhost:4200, /api redirigé vers l'AP
 npm run lint
 npm test             # tests unitaires
 npm run test:int     # tests d'intégration, sur la base TEST_DATABASE_URL (vidée par les tests)
+npm run test:e2e     # build puis tests Playwright, même base de test, API sur le port 3100
 npm run build
 ```
+
+Avant le premier `npm run test:e2e` : `npx playwright install chromium`.
 
 ## Authentification
 
@@ -52,3 +55,4 @@ L'application est servie sur http://localhost:8080 ; les migrations s'appliquent
 | `apps/web` | Front Angular |
 | `packages/shared` | Types partagés entre l'API et le front |
 | `samples/features` | Jeu de fichiers `.feature` d'exemple (données synthétiques) |
+| `e2e` | Tests de bout en bout Playwright |

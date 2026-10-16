@@ -5,6 +5,62 @@ export type HealthStatus = {
 
 export type TestCaseStatus = 'READY' | 'DRAFT' | 'RETIRED';
 
+export type TestCaseSummary = {
+  id: string;
+  title: string;
+  status: TestCaseStatus;
+  priority: string | null;
+  tags: string[];
+  requirementIds: string[];
+  versionNumber: number;
+};
+
+export type TestCaseList = {
+  items: TestCaseSummary[];
+  /** Values present across all cases, to fill the filters. */
+  facets: {
+    tags: string[];
+    priorities: string[];
+    requirementIds: string[];
+  };
+};
+
+export type TestCaseStep = {
+  position: number;
+  action: string;
+  expectedResult: string;
+};
+
+export type TestCaseVersion = {
+  number: number;
+  createdAt: string;
+  revisionId: number;
+  title: string;
+  objective: string | null;
+  testData: string | null;
+  preconditions: string[];
+  steps: TestCaseStep[];
+  cleanup: string | null;
+  notes: string[];
+  openQuestions: string[];
+  priority: string | null;
+  tags: string[];
+  requirementIds: string[];
+  jiraKeys: string[];
+  sourceFile: string;
+  sourceLine: number;
+};
+
+export type TestCaseDetail = {
+  id: string;
+  status: TestCaseStatus;
+  currentVersionNumber: number;
+  /** Newest first. */
+  versions: { number: number; createdAt: string; revisionId: number }[];
+  /** The current version, or the one asked for with `?version=`. */
+  version: TestCaseVersion;
+};
+
 /** A problem found while importing. `line` is absent when it concerns the archive itself. */
 export type ImportIssue = {
   file: string;

@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    // Separate from dist so that `npm run build` (run by the e2e tests) never deletes the running dev server.
+    "outDir": "./dist-dev"
+  }
+}

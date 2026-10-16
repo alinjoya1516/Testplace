@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { APP_CONFIG, type AppConfig } from '../config/app-config';
-import { loadImportConventions } from './import-conventions';
 import { ImportsController } from './imports.controller';
-import { IMPORT_CONVENTIONS, ImportsService } from './imports.service';
+import { ImportsService } from './imports.service';
 
 @Module({
   imports: [
@@ -16,13 +15,6 @@ import { IMPORT_CONVENTIONS, ImportsService } from './imports.service';
     }),
   ],
   controllers: [ImportsController],
-  providers: [
-    ImportsService,
-    {
-      provide: IMPORT_CONVENTIONS,
-      useFactory: (config: AppConfig) => loadImportConventions(config.importConventionsPath),
-      inject: [APP_CONFIG],
-    },
-  ],
+  providers: [ImportsService],
 })
 export class ImportsModule {}

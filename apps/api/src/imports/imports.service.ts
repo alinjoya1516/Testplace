@@ -9,9 +9,7 @@ import type { ImportRevision, Prisma, User } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { readFeatureArchive } from './feature-archive';
 import { parseFeatureFiles, type ParsedCase } from './feature-parser';
-import type { ImportConventions } from './import-conventions';
-
-export const IMPORT_CONVENTIONS = Symbol('IMPORT_CONVENTIONS');
+import { IMPORT_CONVENTIONS, type ImportConventions } from './import-conventions';
 
 // Arbitrary key of the PostgreSQL advisory lock that serialises imports.
 const IMPORT_LOCK_KEY = 4_127_001;

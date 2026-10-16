@@ -1,0 +1,92 @@
+<h1>Cas de test</h1>
+
+<form class="filters" role="search" (submit)="$event.preventDefault()">
+  <mat-form-field class="search">
+    <mat-label>Rechercher (identifiant, titre, étapes)</mat-label>
+    <input matInput type="search" [value]="q() ?? ''" (input)="onSearch($event)" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Statut</mat-label>
+    <mat-select [value]="status() ?? ''" (selectionChange)="setFilter({ status: $event.value || null })">
+      <mat-option value="">Ready et Draft</mat-option>
+      <mat-option value="READY">{{ statusLabels.READY }}</mat-option>
+      <mat-option value="DRAFT">{{ statusLabels.DRAFT }}</mat-option>
+      <mat-option value="RETIRED">{{ statusLabels.RETIRED }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Priorité</mat-label>
+    <mat-select [value]="priority() ?? ''" (selectionChange)="setFilter({ priority: $event.value || null })">
+      <mat-option value="">Toutes</mat-option>
+      @for (value of cases.value()?.facets?.priorities ?? []; track value) {
+        <mat-option [value]="value">{{ priorityLabel(value) }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Exigence</mat-label>
+    <mat-select [value]="requirement() ?? ''" (selectionChange)="setFilter({ requirement: $event.value || null })">
+      <mat-option value="">Toutes</mat-option>
+      @for (value of cases.value()?.facets?.requirementIds ?? []; track value) {
+        <mat-option [value]="value">{{ value }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Tags</mat-label>
+    <mat-select multiple [value]="tags()" (selectionChange)="setFilter({ tag: $event.value })">
+      @for (value of cases.value()?.facets?.tags ?? []; track value) {
+        <mat-option [value]="value">{{ value }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <button mat-button type="button" (click)="clearFilters()">Effacer les filtres</button>
+</form>
+
+@if (cases.isLoading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (cases.error(); as error) {
+  <p class="error" role="alert">{{ describeHttpError(error) }}</p>
+} @else if (cases.value(); as list) {
+  <p class="count" aria-live="polite">{{ list.items.length }} cas</p>
+  @if (list.items.length > 0) {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Identifiant</th><th>Titre</th><th>Statut</th><th>Priorité</th>
+            <th>Exigences</th><th>Tags</th><th>Version</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of list.items; track item.id) {
+            <tr>
+              <td><a [routerLink]="['/cases', item.id]">{{ item.id }}</a></td>
+              <td>{{ item.title }}</td>
+              <td [class]="'status ' + item.status.toLowerCase()">{{ statusLabels[item.status] }}</td>
+              <td>{{ priorityLabel(item.priority) }}</td>
+              <td>{{ item.requirementIds.join(', ') }}</td>
+              <td class="tags">
+                @for (t of item.tags; track t) {
+                  @if (filterTags().has(t)) {
+                    <span class="tag">{{ t }}</span>
+                  }
+                }
+              </td>
+              <td>{{ item.versionNumber }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p>Aucun cas ne correspond à ces critères.</p>
+  }
+}

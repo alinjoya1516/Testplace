@@ -1,0 +1,80 @@
+.back {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.id {
+  color: var(--mat-sys-on-surface-variant);
+  margin-right: 8px;
+}
+
+.error {
+  color: var(--mat-sys-error);
+}
+
+.status.draft {
+  color: var(--mat-sys-tertiary);
+}
+
+.status.retired {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.notice,
+.questions {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.questions h2 {
+  margin-top: 8px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px 24px;
+
+  dt {
+    font: var(--mat-sys-label-medium);
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  dd {
+    margin: 0;
+    word-break: break-word;
+  }
+}
+
+h2 {
+  margin: 24px 0 8px;
+  font: var(--mat-sys-title-medium);
+}
+
+// Steps keep their data tables and doc strings on several lines.
+.text {
+  white-space: pre-wrap;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  vertical-align: top;
+}
+
+tr.selected {
+  background: var(--mat-sys-surface-container);
+}

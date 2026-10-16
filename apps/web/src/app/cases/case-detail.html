@@ -1,0 +1,116 @@
+<a routerLink="/cases" class="back">← Liste des cas</a>
+
+@if (detail.isLoading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (detail.error(); as error) {
+  <p class="error" role="alert">{{ describeHttpError(error) }}</p>
+} @else if (detail.value(); as tc) {
+  <h1>
+    <span class="id">{{ tc.id }}</span>
+    {{ tc.version.title }}
+  </h1>
+  <p>
+    <span [class]="'status ' + tc.status.toLowerCase()">{{ statusLabels[tc.status] }}</span>
+    · version {{ tc.version.number }}
+  </p>
+
+  @if (tc.version.number !== tc.currentVersionNumber) {
+    <p class="notice" role="status">
+      Vous consultez la version {{ tc.version.number }}.
+      <a [routerLink]="['/cases', tc.id]">Voir la version courante (n° {{ tc.currentVersionNumber }})</a>
+    </p>
+  }
+
+  @if (tc.version.openQuestions.length > 0) {
+    <section class="questions" aria-labelledby="questions-title">
+      <h2 id="questions-title">Questions ouvertes</h2>
+      <ul>
+        @for (question of tc.version.openQuestions; track $index) {
+          <li>{{ question }}</li>
+        }
+      </ul>
+    </section>
+  }
+
+  <dl class="fields">
+    <div><dt>Priorité</dt><dd>{{ priorityLabel(tc.version.priority) }}</dd></div>
+    <div><dt>Exigences</dt><dd>{{ tc.version.requirementIds.join(', ') || '—' }}</dd></div>
+    <div><dt>Stories Jira</dt><dd>{{ tc.version.jiraKeys.join(', ') || '—' }}</dd></div>
+    <div><dt>Tags</dt><dd>{{ tc.version.tags.join(' ') }}</dd></div>
+    <div><dt>Source</dt><dd><code>{{ tc.version.sourceFile }}</code>, ligne {{ tc.version.sourceLine }}</dd></div>
+  </dl>
+
+  <h2>Objectif</h2>
+  <p class="text">{{ tc.version.objective ?? '—' }}</p>
+
+  <h2>Données de test</h2>
+  <p class="text">{{ tc.version.testData ?? '—' }}</p>
+
+  <h2>Préconditions</h2>
+  @if (tc.version.preconditions.length > 0) {
+    <ul>
+      @for (precondition of tc.version.preconditions; track $index) {
+        <li class="text">{{ precondition }}</li>
+      }
+    </ul>
+  } @else {
+    <p>—</p>
+  }
+
+  <h2>Étapes</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>N°</th><th>Action</th><th>Résultat attendu</th></tr>
+      </thead>
+      <tbody>
+        @for (step of tc.version.steps; track step.position) {
+          <tr>
+            <td>{{ step.position }}</td>
+            <td class="text">{{ step.action || '—' }}</td>
+            <td class="text">{{ step.expectedResult || '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Nettoyage</h2>
+  <p class="text">{{ tc.version.cleanup ?? '—' }}</p>
+
+  @if (tc.version.notes.length > 0) {
+    <h2>Notes</h2>
+    <ul>
+      @for (note of tc.version.notes; track $index) {
+        <li>{{ note }}</li>
+      }
+    </ul>
+  }
+
+  <h2>Versions</h2>
+  <div class="table-wrapper">
+    <table class="versions">
+      <thead>
+        <tr><th>Version</th><th>Date</th><th>Révision d'import</th></tr>
+      </thead>
+      <tbody>
+        @for (v of tc.versions; track v.number) {
+          <tr [class.selected]="v.number === tc.version.number">
+            <td>
+              <a [routerLink]="['/cases', tc.id]" [queryParams]="v.number === tc.currentVersionNumber ? {} : { version: v.number }">
+                {{ v.number }}
+              </a>
+              @if (v.number === tc.currentVersionNumber) {
+                (courante)
+              }
+            </td>
+            <td>{{ v.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>n° {{ v.revisionId }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

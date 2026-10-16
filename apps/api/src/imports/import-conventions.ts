@@ -26,6 +26,8 @@ const importConventionsSchema = z.strictObject({
 
 export type ImportConventions = z.infer<typeof importConventionsSchema>;
 
+export const IMPORT_CONVENTIONS = Symbol('IMPORT_CONVENTIONS');
+
 export function loadImportConventions(path: string): ImportConventions {
   const result = importConventionsSchema.safeParse(JSON.parse(readFileSync(path, 'utf8')));
   if (!result.success) {

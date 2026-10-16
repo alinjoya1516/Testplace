@@ -51,3 +51,25 @@
   - Les noms d'archive avec accents peuvent être mal décodés par multer (affichage seulement).
   - Le parcours de l'écran Import n'est pas encore couvert par Playwright.
 - Prochaine étape : liste des cas avec recherche et filtres (EF-03), fiche de cas avec historique des versions (EF-04), tests Playwright des parcours import et consultation. Fin de l'incrément 1.
+
+## 2026-10-16 — Incrément 1 (suite)
+
+- Fait :
+  - `GET /api/cases` (EF-03) : recherche dans l'identifiant, le titre et les étapes de la version courante, sans tenir compte de la casse ; filtres par tags (tous requis, `@` facultatif), priorité, statut et exigence ; cas retirés masqués sauf filtre « Retiré » ; ordre naturel des identifiants ; valeurs disponibles pour les filtres (`facets`).
+  - `GET /api/cases/{id}` (EF-04) : version courante ou `?version=n`, liste des versions.
+  - Écrans Cas : liste filtrable (filtres gardés dans l'URL) et fiche en lecture seule (questions ouvertes en tête, champs, préconditions, étapes, nettoyage, notes, source, versions consultables).
+  - Écrans chargés à la demande : paquet initial ramené de 621 à 386 Ko (budget Angular 500 Ko).
+  - Playwright (`e2e/`, Chromium) : critère 1 (import, liste, recherche, fiche, réimport sans nouvelle version), critère 2 (erreurs avec fichier et ligne), filtres de la liste. Lancé aussi dans la CI, rapport conservé en cas d'échec.
+- Décisions :
+  - Validées avant de coder : paramètres de recherche et filtres, pas de pagination (500 cas au plus), versions consultables par `?version=`.
+  - Ajout non annoncé dans le plan : la réponse de `GET /api/cases` contient `facets` (tags, priorités, exigences présents) pour remplir les filtres ; les tags d'identifiant, d'exigence et Jira en sont exclus.
+  - Libellés des statuts : « Ready », « Draft », « Retiré », comme dans EF-03 ; priorité affichée avec une majuscule (« Critical », comme au §4.2).
+  - Les conventions d'import sont chargées par le module commun, partagé par l'import et les cas.
+  - Playwright épinglé en 1.63.0 : la 1.64 avait moins de deux semaines.
+  - Nouvel espace de travail `e2e` avec `pg` (vider la base de test) et `fflate` (construire les archives).
+- Ouvert :
+  - Historique des exécutions dans la fiche de cas (EF-04) : à ajouter à l'incrément 2, quand les exécutions existeront.
+  - Canal Edge pour Playwright (ENF-08) si besoin.
+- Correctif : `npm run build` (lancé par `npm run test:e2e`) vidait `apps/api/dist`, d'où tournait l'API de développement, qui s'arrêtait. Le mode développement compile maintenant dans `apps/api/dist-dev` (`tsconfig.dev.json`).
+- Vérification manuelle : `npm run test:e2e` réussi sur le poste de l'utilisateur.
+- Prochaine étape : validation de l'incrément 1 (critères 1 et 2), puis incrément 2 (campagnes et exécution).

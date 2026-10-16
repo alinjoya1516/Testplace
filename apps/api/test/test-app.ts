@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { strToU8, zipSync } from 'fflate';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
@@ -36,6 +37,10 @@ export function sampleFiles(): Record<string, string> {
       .filter((path) => path.endsWith('.feature'))
       .map((path) => [path, readFileSync(join(samplesDir, path), 'utf8')]),
   );
+}
+
+export async function importFiles(app: INestApplication, files: Record<string, string>): Promise<void> {
+  await request(app.getHttpServer()).post('/api/imports').attach('archive', zipFiles(files), 'cases.zip').expect(201);
 }
 
 export function zipFiles(files: Record<string, string>): Buffer {

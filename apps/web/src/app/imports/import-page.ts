@@ -8,7 +8,8 @@ import type {
   ImportRevisionSummary,
   ImportStatus,
 } from '@testplace/shared';
-import { ImportsApi, describeHttpError } from './imports-api';
+import { describeHttpError } from '../http-errors';
+import { ImportsApi } from './imports-api';
 
 @Component({
   selector: 'app-import-page',
