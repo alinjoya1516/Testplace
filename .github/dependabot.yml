@@ -12,6 +12,13 @@ updates:
       day: monday
     cooldown:
       default-days: 14
+    ignore:
+      # Angular dictates the TypeScript version (6.0 for Angular 22): review on each Angular upgrade.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      # Node types follow the runtime of .nvmrc, not the latest Node release.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       angular:
         patterns: ['@angular/*', '@angular-devkit/*']
