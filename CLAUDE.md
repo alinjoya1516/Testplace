@@ -32,6 +32,7 @@ Ne la remets pas en question sans que je le demande.
 | --- | --- |
 | Installer | Node 24 (`.nvmrc`), puis `npm install` et `cp .env.example .env` |
 | Lancer en local | `npm run db:up`, `npm run db:migrate`, puis `npm run dev:api` (port 3000) et `npm run dev:web` (http://localhost:4200) |
+| Données de démonstration | Avec l'API de développement lancée : `npm run demo` (importe le jeu d'exemple, crée une campagne lancée et affectée) |
 | Lancer tout en Docker | `docker compose up -d --build` (http://localhost:8080) |
 | Lint | `npm run lint` |
 | Tests unitaires | `npm test` |

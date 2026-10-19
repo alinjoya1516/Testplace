@@ -16,6 +16,8 @@ const envSchema = z
     IMPORT_MAX_ARCHIVE_BYTES: z.coerce.number().int().positive().default(5 * MB),
     IMPORT_MAX_UNCOMPRESSED_BYTES: z.coerce.number().int().positive().default(20 * MB),
     IMPORT_MAX_FILES: z.coerce.number().int().positive().default(1000),
+    // Share of Blocked cases above which a closed campaign is flagged for replay (EF-09).
+    CAMPAIGN_REPLAY_THRESHOLD: z.coerce.number().min(0).max(1).default(0.1),
   })
   .refine((env) => !(env.AUTH_MODE === 'dev' && env.NODE_ENV === 'production'), {
     message: 'AUTH_MODE=dev is forbidden when NODE_ENV=production',
@@ -26,6 +28,7 @@ export type AppConfig = {
   authMode: 'none' | 'dev';
   importConventionsPath: string;
   importLimits: ArchiveLimits;
+  campaignReplayThreshold: number;
 };
 
 export type ArchiveLimits = {
@@ -48,5 +51,6 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
       maxUncompressedBytes: parsed.IMPORT_MAX_UNCOMPRESSED_BYTES,
       maxFiles: parsed.IMPORT_MAX_FILES,
     },
+    campaignReplayThreshold: parsed.CAMPAIGN_REPLAY_THRESHOLD,
   };
 }

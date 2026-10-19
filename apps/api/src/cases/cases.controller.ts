@@ -1,6 +1,7 @@
-import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import type { TestCaseDetail, TestCaseList } from '@testplace/shared';
 import { z } from 'zod';
+import { validate } from '../common/validation';
 import { CasesService } from './cases.service';
 
 const oneOrMany = z
@@ -23,28 +24,18 @@ const detailQuerySchema = z.object({
   version: z.coerce.number().int().positive().optional(),
 });
 
-function parse<T extends z.ZodType>(schema: T, value: unknown): z.output<T> {
-  const result = schema.safeParse(value);
-  if (!result.success) {
-    throw new BadRequestException(
-      result.error.issues.map((issue) => `${issue.path.join('.')} : ${issue.message}`).join(' '),
-    );
-  }
-  return result.data;
-}
-
 @Controller('cases')
 export class CasesController {
   constructor(private readonly cases: CasesService) {}
 
   @Get()
   list(@Query() query: unknown): Promise<TestCaseList> {
-    const { q, tag, priority, status, requirement } = parse(listQuerySchema, query);
+    const { q, tag, priority, status, requirement } = validate(listQuerySchema, query);
     return this.cases.list({ q: q || undefined, tags: tag, priority, status, requirement });
   }
 
   @Get(':id')
   get(@Param('id') id: string, @Query() query: unknown): Promise<TestCaseDetail> {
-    return this.cases.get(id, parse(detailQuerySchema, query).version);
+    return this.cases.get(id, validate(detailQuerySchema, query).version);
   }
 }

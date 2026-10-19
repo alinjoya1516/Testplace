@@ -21,7 +21,14 @@ npm run db:up        # PostgreSQL 16 dans Docker, sur localhost uniquement
 npm run db:migrate   # applique les migrations Prisma
 npm run dev:api      # API sur http://localhost:3000/api
 npm run dev:web      # front sur http://localhost:4200, /api redirigé vers l'API
+npm run demo         # données de démonstration : jeu d'exemple et campagne lancée
 ```
+
+`npm run demo` réimporte le jeu d'exemple d'origine : un cas modifié par un import précédent reçoit une nouvelle version.
+
+## Mises à jour des dépendances
+
+Dependabot (`.github/dependabot.yml`) propose chaque lundi des pull requests de mise à jour, vérifiées par la CI. Une version n'est proposée qu'après 14 jours de publication ; les correctifs de sécurité ne sont pas retardés. Les montées de version majeure de Node et de PostgreSQL ne sont pas proposées : elles se décident.
 
 ## Vérifications
 

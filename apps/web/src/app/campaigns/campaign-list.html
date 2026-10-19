@@ -1,0 +1,53 @@
+<div class="title-bar">
+  <h1>Campagnes</h1>
+  <a mat-flat-button routerLink="/campaigns/new">Nouvelle campagne</a>
+</div>
+
+@if (campaigns.isLoading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (campaigns.error(); as error) {
+  <p class="error" role="alert">{{ describeHttpError(error) }}</p>
+} @else if (campaigns.value(); as list) {
+  @if (list.length === 0) {
+    <p>Aucune campagne pour l'instant.</p>
+  } @else {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>N°</th><th>Nom</th><th>Build</th><th>Environnement</th><th>Statut</th>
+            <th>Dates prévues</th><th>Cas</th><th>Exécution</th><th>Réussite</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of list; track c.id) {
+            <tr>
+              <td>{{ c.id }}</td>
+              <td><a [routerLink]="['/campaigns', c.id]">{{ c.name }}</a></td>
+              <td>{{ c.build }}</td>
+              <td>{{ c.environment }}</td>
+              <td>
+                <span [class]="'campaign-status ' + c.status.toLowerCase()">{{ statusLabels[c.status] }}</span>
+                @if (c.needsReplay) {
+                  <span class="replay">À rejouer</span>
+                }
+              </td>
+              <td>
+                @if (c.plannedStart || c.plannedEnd) {
+                  {{ c.plannedStart | date: 'dd/MM/yyyy' }} → {{ c.plannedEnd | date: 'dd/MM/yyyy' }}
+                } @else {
+                  —
+                }
+              </td>
+              <td>{{ c.status === 'DRAFT' ? '—' : c.stats.total }}</td>
+              <td>{{ c.stats.executionRate === null ? '—' : (c.stats.executionRate | percent: '1.0-1') }}</td>
+              <td>{{ c.stats.passRate === null ? '—' : (c.stats.passRate | percent: '1.0-1') }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

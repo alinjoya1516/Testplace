@@ -1,0 +1,58 @@
+# Weekly update pull requests, each checked by the CI.
+# Versions are proposed only once they are 14 days old, to leave time for a broken
+# or compromised release to be noticed. Security updates are not delayed.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    # The root lockfile covers every workspace.
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    groups:
+      angular:
+        patterns: ['@angular/*', '@angular-devkit/*']
+      nestjs:
+        patterns: ['@nestjs/*']
+      prisma:
+        patterns: ['prisma', '@prisma/*']
+      cucumber:
+        patterns: ['@cucumber/*']
+      other-minor-and-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    ignore:
+      # Node stays on the LTS line of .nvmrc; a major upgrade is a deliberate decision.
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    ignore:
+      # A major PostgreSQL upgrade needs a dump and restore of the data volume.
+      - dependency-name: postgres
+        update-types: ['version-update:semver-major']

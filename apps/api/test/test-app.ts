@@ -24,7 +24,7 @@ export async function createTestApp(env: Record<string, string> = {}): Promise<I
 /** Empties every table except users, which the app creates at startup. */
 export async function resetDatabase(app: INestApplication): Promise<void> {
   await app.get(PrismaService).$executeRawUnsafe(
-    'TRUNCATE "Step", "TestCaseVersion", "TestCase", "Requirement", "ImportRevision" RESTART IDENTITY CASCADE',
+    'TRUNCATE "ExecutionStatusChange", "StepResult", "Execution", "Campaign", "Step", "TestCaseVersion", "TestCase", "Requirement", "ImportRevision" RESTART IDENTITY CASCADE',
   );
 }
 

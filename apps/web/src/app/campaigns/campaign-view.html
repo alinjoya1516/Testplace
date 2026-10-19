@@ -1,0 +1,215 @@
+<a routerLink="/campaigns">← Campagnes</a>
+
+@if (campaign.isLoading() || busy()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (campaign.error(); as error) {
+  <p class="error" role="alert">{{ describeHttpError(error) }}</p>
+} @else if (campaign.value(); as c) {
+  <div class="title-bar">
+    <h1>{{ c.name }}</h1>
+    <div class="actions">
+      @switch (c.status) {
+        @case ('DRAFT') {
+          <a mat-stroked-button [routerLink]="['/campaigns', c.id, 'edit']">Modifier</a>
+          <button mat-flat-button type="button" (click)="launch()" [disabled]="busy() || !c.selection?.count">
+            Lancer la campagne
+          </button>
+        }
+        @case ('RUNNING') {
+          <button mat-flat-button type="button" (click)="confirmingClose.set(true)" [disabled]="busy()">
+            Clôturer
+          </button>
+        }
+      }
+      <button mat-stroked-button type="button" (click)="duplicating.set(!duplicating())" [disabled]="busy()">
+        Dupliquer
+      </button>
+    </div>
+  </div>
+
+  <p>
+    <span [class]="'campaign-status ' + c.status.toLowerCase()">{{ statusLabels[c.status] }}</span>
+    @if (c.needsReplay) {
+      <span class="replay">À rejouer</span>
+    }
+  </p>
+
+  @if (actionError(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  @if (confirmingClose()) {
+    <div class="panel" role="alertdialog" aria-labelledby="close-title">
+      <h2 id="close-title">Clôturer la campagne ?</h2>
+      @if (c.stats.notRun > 0) {
+        @if (c.stats.notRun > 1) {
+          <p>{{ c.stats.notRun }} cas ne sont pas exécutés : ils resteront « Not run ».</p>
+        } @else {
+          <p>1 cas n'est pas exécuté : il restera « Not run ».</p>
+        }
+      }
+      <p>Une campagne clôturée ne peut plus être exécutée.</p>
+      <button mat-flat-button type="button" (click)="close()" [disabled]="busy()">Clôturer</button>
+      <button mat-button type="button" (click)="confirmingClose.set(false)">Annuler</button>
+    </div>
+  }
+
+  @if (duplicating()) {
+    <form class="panel" (submit)="$event.preventDefault(); duplicate()">
+      <h2>Dupliquer pour un autre build</h2>
+      <p>La copie reprend l'environnement, la sélection et les affectations. Elle est créée en préparation.</p>
+      <mat-form-field>
+        <mat-label>Nouveau build</mat-label>
+        <input matInput required [value]="duplicateBuild()" (input)="duplicateBuild.set(inputValue($event))" />
+      </mat-form-field>
+      <button mat-flat-button type="submit" [disabled]="busy() || !duplicateBuild().trim()">Créer la copie</button>
+      <button mat-button type="button" (click)="duplicating.set(false)">Annuler</button>
+    </form>
+  }
+
+  <dl class="fields">
+    <div><dt>Build</dt><dd>{{ c.build }}</dd></div>
+    <div><dt>Environnement</dt><dd>{{ c.environment }}</dd></div>
+    <div>
+      <dt>Dates prévues</dt>
+      <dd>
+        @if (c.plannedStart || c.plannedEnd) {
+          {{ c.plannedStart | date: 'dd/MM/yyyy' }} → {{ c.plannedEnd | date: 'dd/MM/yyyy' }}
+        } @else {
+          —
+        }
+      </dd>
+    </div>
+    <div>
+      <dt>Sélection</dt>
+      <dd><code>{{ c.tagExpression || '(tous les cas)' }}</code>{{ c.includeDrafts ? ', Draft inclus' : '' }}</dd>
+    </div>
+    <div><dt>Créée par</dt><dd>{{ c.createdByName }}, le {{ c.createdAt | date: 'dd/MM/yyyy' }}</dd></div>
+    @if (c.launchedAt) {
+      <div><dt>Lancée le</dt><dd>{{ c.launchedAt | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+    }
+    @if (c.closedAt) {
+      <div><dt>Clôturée le</dt><dd>{{ c.closedAt | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+    }
+    @if (c.duplicatedFromId) {
+      <div><dt>Copie de</dt><dd><a [routerLink]="['/campaigns', c.duplicatedFromId]">campagne n° {{ c.duplicatedFromId }}</a></dd></div>
+    }
+  </dl>
+
+  @if (c.selection; as selection) {
+    <h2>Cas sélectionnés ({{ selection.count }})</h2>
+    <p class="hint">La sélection sera figée au lancement : un import ultérieur ne la modifiera pas.</p>
+    @if (selection.count === 0) {
+      <p>Aucun cas ne correspond : modifiez l'expression de tags.</p>
+    } @else {
+      <p class="ids">
+        @for (caseId of selection.caseIds; track caseId; let last = $last) {
+          <a [routerLink]="['/cases', caseId]">{{ caseId }}</a>{{ last ? '' : ', ' }}
+        }
+      </p>
+    }
+  } @else {
+    <dl class="stats" aria-label="Avancement">
+      <div><dt>Cas</dt><dd>{{ c.stats.total }}</dd></div>
+      <div><dt>Passed</dt><dd>{{ c.stats.passed }}</dd></div>
+      <div><dt>Failed</dt><dd>{{ c.stats.failed }}</dd></div>
+      <div><dt>Blocked</dt><dd>{{ c.stats.blocked }}</dd></div>
+      <div><dt>Not run</dt><dd>{{ c.stats.notRun }}</dd></div>
+      <div><dt>Exécution</dt><dd>{{ c.stats.executionRate === null ? '—' : (c.stats.executionRate | percent: '1.0-1') }}</dd></div>
+      <div><dt>Réussite</dt><dd>{{ c.stats.passRate === null ? '—' : (c.stats.passRate | percent: '1.0-1') }}</dd></div>
+    </dl>
+
+    @if (staleCount() > 0) {
+      <p class="notice" role="status">
+        {{ staleCount() }} cas {{ staleCount() > 1 ? 'ont' : 'a' }} une version plus récente depuis le lancement. La campagne garde la version figée ;
+        dupliquez-la pour rejouer les nouvelles versions.
+      </p>
+    }
+
+    @if (c.status === 'RUNNING') {
+      <div class="bulk">
+        <mat-form-field>
+          <mat-label>Affecter la sélection à</mat-label>
+          <mat-select [value]="bulkAssignee()" (selectionChange)="bulkAssignee.set($event.value)">
+            <mat-option [value]="nobody">Personne (retirer l'affectation)</mat-option>
+            @for (user of users.value() ?? []; track user.id) {
+              <mat-option [value]="user.id">{{ user.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="assignSelected()"
+          [disabled]="busy() || selected().size === 0 || bulkAssignee() === null"
+        >
+          Affecter {{ selected().size }} cas
+        </button>
+      </div>
+    }
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            @if (c.status === 'RUNNING') {
+              <th>
+                <mat-checkbox
+                  aria-label="Tout sélectionner"
+                  [checked]="allSelected()"
+                  (change)="toggleAll($event.checked)"
+                />
+              </th>
+            }
+            <th>N°</th><th>Cas</th><th>Titre</th><th>Version</th><th>Exécutant</th><th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of c.executions; track e.id) {
+            <tr>
+              @if (c.status === 'RUNNING') {
+                <td>
+                  <mat-checkbox
+                    [aria-label]="'Sélectionner ' + e.testCaseId"
+                    [checked]="selected().has(e.id)"
+                    (change)="toggle(e.id, $event.checked)"
+                  />
+                </td>
+              }
+              <td>{{ e.position }}</td>
+              <td><a [routerLink]="['/cases', e.testCaseId]" [queryParams]="{ version: e.versionNumber }">{{ e.testCaseId }}</a></td>
+              <td>{{ e.title }}</td>
+              <td>
+                {{ e.versionNumber }}
+                @if (e.newerVersionAvailable) {
+                  <span class="stale" title="Une version plus récente a été importée depuis le lancement">plus récente disponible</span>
+                }
+              </td>
+              <td>
+                @if (c.status === 'RUNNING') {
+                  <mat-select
+                    class="assignee"
+                    [aria-label]="'Exécutant de ' + e.testCaseId"
+                    [value]="e.assignee?.id ?? nobody"
+                    (selectionChange)="assignOne(e.id, $event.value)"
+                    [disabled]="busy()"
+                  >
+                    <mat-option [value]="nobody">—</mat-option>
+                    @for (user of users.value() ?? []; track user.id) {
+                      <mat-option [value]="user.id">{{ user.name }}</mat-option>
+                    }
+                  </mat-select>
+                } @else {
+                  {{ e.assignee?.name ?? '—' }}
+                }
+              </td>
+              <td [class]="'result ' + e.status.toLowerCase()">{{ resultLabels[e.status] }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

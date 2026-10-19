@@ -5,6 +5,88 @@ export type HealthStatus = {
 
 export type TestCaseStatus = 'READY' | 'DRAFT' | 'RETIRED';
 
+export type Role = 'ADMIN' | 'EXECUTOR' | 'READER';
+
+export type UserSummary = {
+  id: string;
+  name: string;
+  role: Role;
+};
+
+export type ResultStatus = 'NOT_RUN' | 'PASSED' | 'FAILED' | 'BLOCKED';
+
+export type CampaignStatus = 'DRAFT' | 'RUNNING' | 'CLOSED';
+
+/** Rates are between 0 and 1, null when their denominator is zero. */
+export type CampaignStats = {
+  total: number;
+  notRun: number;
+  passed: number;
+  failed: number;
+  blocked: number;
+  /** (Passed + Failed + Blocked) / total */
+  executionRate: number | null;
+  /** Passed / (Passed + Failed) */
+  passRate: number | null;
+  /** Blocked / total, compared with the replay threshold at closing. */
+  blockedShare: number | null;
+};
+
+export type CampaignInput = {
+  name: string;
+  build: string;
+  environment: string;
+  tagExpression: string;
+  includeDrafts: boolean;
+  /** ISO dates, YYYY-MM-DD. */
+  plannedStart: string | null;
+  plannedEnd: string | null;
+};
+
+export type SelectionPreview = {
+  count: number;
+  caseIds: string[];
+};
+
+export type CampaignSummary = {
+  id: number;
+  name: string;
+  build: string;
+  environment: string;
+  status: CampaignStatus;
+  needsReplay: boolean;
+  plannedStart: string | null;
+  plannedEnd: string | null;
+  createdAt: string;
+  stats: CampaignStats;
+};
+
+export type CampaignExecution = {
+  id: number;
+  position: number;
+  testCaseId: string;
+  title: string;
+  versionNumber: number;
+  /** The case was imported again with changes after the launch (§12). */
+  newerVersionAvailable: boolean;
+  assignee: UserSummary | null;
+  status: ResultStatus;
+  elapsedSeconds: number;
+};
+
+export type CampaignDetail = CampaignSummary & {
+  tagExpression: string;
+  includeDrafts: boolean;
+  launchedAt: string | null;
+  closedAt: string | null;
+  createdByName: string;
+  duplicatedFromId: number | null;
+  /** Live selection of a draft campaign; null once launched. */
+  selection: SelectionPreview | null;
+  /** Empty until the campaign is launched. */
+  executions: CampaignExecution[];
+};
+
 export type TestCaseSummary = {
   id: string;
   title: string;

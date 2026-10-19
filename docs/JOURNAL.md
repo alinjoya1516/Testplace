@@ -73,3 +73,37 @@
 - Correctif : `npm run build` (lancé par `npm run test:e2e`) vidait `apps/api/dist`, d'où tournait l'API de développement, qui s'arrêtait. Le mode développement compile maintenant dans `apps/api/dist-dev` (`tsconfig.dev.json`).
 - Vérification manuelle : `npm run test:e2e` réussi sur le poste de l'utilisateur.
 - Prochaine étape : validation de l'incrément 1 (critères 1 et 2), puis incrément 2 (campagnes et exécution).
+
+## 2026-10-18 — Incrément 1 validé
+
+- Validé par l'utilisateur : critères d'acceptation 1 et 2 vérifiés dans l'interface, par les tests d'intégration et par Playwright, en local et dans la CI (commit `d1b06b2`).
+- Reporté à l'incrément 2, comme convenu : historique des exécutions dans la fiche de cas (EF-04).
+- Prochaine étape : incrément 2, campagnes et exécution (EF-06 à EF-10, EF-12, EF-13, EF-14 pour les commentaires, EF-15 à EF-19, EF-25).
+
+## 2026-10-18 — Incrément 2
+
+- Fait :
+  - Modèle de données (migration `campaigns_and_executions`) : Campaign, Execution, StepResult, ExecutionStatusChange ; champs du chronomètre et du verrou prêts pour la session suivante.
+  - Calcul du statut d'un cas à partir de ses étapes (EF-13, `execution-status.ts`) et des taux de campagne (`campaign-stats.ts`), testés.
+  - API des campagnes : aperçu de la sélection (EF-06), création et modification en préparation, lancement qui fige les versions (EF-07), affectation individuelle ou en lot (EF-08), clôture avec indicateur « à rejouer » (EF-09), duplication (EF-10) ; `GET /api/users/assignable`.
+  - Écrans : liste des campagnes, formulaire avec aperçu en direct, vue d'une campagne (sélection ou exécutions, affectation, clôture avec confirmation, duplication, signalement des versions plus récentes du §12).
+  - Exécutants fictifs « Exécutant A » et « Exécutant B » créés en mode dev.
+  - Tests : 19 tests d'intégration et 2 scénarios Playwright pour les campagnes.
+- Décisions :
+  - Validées avant de coder : cycle DRAFT → RUNNING → CLOSED avec exécutions créées au lancement ; Draft exclus sauf option, Retirés toujours exclus ; expression préremplie `not @quarantine` ; table de trace des changements manuels de statut ; verrou à expiration (5 min) ; formules : exécution = (Passed + Failed + Blocked) / total, réussite = Passed / (Passed + Failed), à rejouer si Blocked / total > seuil ; duplication en DRAFT avec reprise des affectations au lancement.
+  - « Au-delà du seuil » est compris comme strictement supérieur : exactement 10 % de Blocked ne déclenche pas « à rejouer ».
+  - Un tag écrit sans `@` dans l'expression est refusé : la bibliothèque l'accepterait mais il ne correspondrait à aucun cas.
+  - Un cas sans étape reste Not run tant que son statut n'est pas fixé à la main.
+  - Une campagne sans aucun cas sélectionné ne peut pas être lancée.
+  - Seuil « à rejouer » réglable par `CAMPAIGN_REPLAY_THRESHOLD` (0,1 par défaut) en attendant l'écran d'administration.
+  - Règle de lint `unbound-method` désactivée pour le front : les validateurs Angular sont des fonctions statiques passées par référence.
+- Ouvert :
+  - Les droits par rôle (seul un administrateur crée ou clôture une campagne) seront appliqués avec OpenID Connect, à l'incrément 3.
+- Recommandations appliquées à la demande de l'utilisateur :
+  - Changement automatique de version de Node : script de nvm ajouté à `~/.zshrc` (sauvegarde `~/.zshrc.backup-2026-10-19`), Node 24 dans le projet, version par défaut ailleurs.
+  - `npm run demo` (`scripts/demo.mts`, exécuté directement par Node 24) : importe le jeu d'exemple et crée une campagne lancée et répartie entre les exécutants, via l'API de développement.
+  - Dependabot (`.github/dependabot.yml`) : npm, GitHub Actions, Docker et Docker Compose chaque lundi, versions d'au moins 14 jours, groupes Angular, NestJS, Prisma, Cucumber ; montées majeures de Node et PostgreSQL exclues.
+- Décision de l'utilisateur : les droits par rôle restent à l'incrément 3, avec OpenID Connect, comme prévu.
+- Vérification manuelle : les 8 étapes de la session validées par l'utilisateur.
+- Correctifs après vérification : mise en page du formulaire de campagne (texte superposé), accords au singulier (« 1 cas a », « 1 cas n'est pas exécuté »).
+- Prochaine étape : écran d'exécution (EF-12 à EF-19) : étapes et statuts, commentaires, motif de blocage, chronomètre, verrou, sauvegarde automatique, cas suivant.

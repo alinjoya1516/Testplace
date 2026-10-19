@@ -1,0 +1,80 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.panel {
+  padding: 8px 16px 16px;
+  margin: 16px 0;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+
+  button {
+    margin-right: 8px;
+  }
+}
+
+.fields,
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px 24px;
+
+  dt {
+    font: var(--mat-sys-label-medium);
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  dd {
+    margin: 0;
+    word-break: break-word;
+  }
+}
+
+.stats dd {
+  font: var(--mat-sys-headline-small);
+}
+
+h2 {
+  margin: 24px 0 8px;
+  font: var(--mat-sys-title-medium);
+}
+
+.hint {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.notice {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 16px;
+  margin-top: 16px;
+}
+
+.assignee {
+  min-width: 160px;
+}
+
+.stale {
+  margin-left: 6px;
+  color: var(--mat-sys-tertiary);
+  font: var(--mat-sys-label-medium);
+}
+
+.result.passed {
+  color: var(--mat-sys-primary);
+}
+
+.result.failed,
+.result.blocked {
+  color: var(--mat-sys-error);
+}

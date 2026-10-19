@@ -1,0 +1,80 @@
+@if (id(); as campaignId) {
+  <a [routerLink]="['/campaigns', campaignId]">← Retour à la campagne</a>
+  <h1>Modifier la campagne</h1>
+} @else {
+  <a routerLink="/campaigns">← Campagnes</a>
+  <h1>Nouvelle campagne</h1>
+}
+
+@if (notEditable()) {
+  <p class="error" role="alert">Cette campagne est lancée : elle ne peut plus être modifiée.</p>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="save()" class="campaign-form">
+    <mat-form-field class="wide">
+      <mat-label>Nom</mat-label>
+      <input matInput formControlName="name" required />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Le nom est obligatoire.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Build ou version</mat-label>
+      <input matInput formControlName="build" required />
+      @if (form.controls.build.hasError('required')) {
+        <mat-error>Le build est obligatoire.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Environnement</mat-label>
+      <input matInput formControlName="environment" required />
+      @if (form.controls.environment.hasError('required')) {
+        <mat-error>L'environnement est obligatoire.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Début prévu</mat-label>
+      <input matInput type="date" formControlName="plannedStart" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Fin prévue</mat-label>
+      <input matInput type="date" formControlName="plannedEnd" />
+    </mat-form-field>
+
+    <fieldset class="selection">
+      <legend>Sélection des cas</legend>
+      <!-- Dynamic subscript: the hint may wrap on narrow screens without covering what follows. -->
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>Expression de tags</mat-label>
+        <input matInput formControlName="tagExpression" placeholder="@critical and not @quarantine" />
+        <mat-hint>Opérateurs and, or, not et parenthèses. Vide : tous les cas.</mat-hint>
+      </mat-form-field>
+      <mat-checkbox formControlName="includeDrafts">Inclure les cas Draft</mat-checkbox>
+      <p class="hint">Les cas retirés ne sont jamais sélectionnés.</p>
+
+      @if (selection(); as state) {
+        @if (state.error) {
+          <p class="error" role="alert">{{ state.error }}</p>
+        } @else if (state.preview) {
+          <p aria-live="polite"><strong>{{ state.preview.count }} cas sélectionnés</strong></p>
+          @if (state.preview.count > 0) {
+            <p class="ids">{{ state.preview.caseIds.join(', ') }}</p>
+          }
+        }
+      }
+    </fieldset>
+
+    @if (error(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+    }
+
+    <div class="actions">
+      <button mat-flat-button type="submit" [disabled]="saving()">
+        {{ id() ? 'Enregistrer' : 'Créer la campagne' }}
+      </button>
+    </div>
+  </form>
+}

@@ -8,5 +8,13 @@
   "env": {
     "node": true
   },
-  "ignorePatterns": ["**/generated/**", "**/dist/**", "**/dist-dev/**"]
+  "ignorePatterns": ["**/generated/**", "**/dist/**", "**/dist-dev/**"],
+  "overrides": [
+    {
+      "files": ["apps/web/**"],
+      "rules": {
+        "typescript/unbound-method": "off"
+      }
+    }
+  ]
 }

@@ -5,6 +5,7 @@ import type {
   TestCaseStatus,
   TestCaseSummary,
 } from '@testplace/shared';
+import { naturalOrder } from '../common/natural-order';
 import type { Prisma } from '../generated/prisma/client';
 import { IMPORT_CONVENTIONS, type ImportConventions } from '../imports/import-conventions';
 import { PrismaService } from '../prisma/prisma.service';
@@ -16,8 +17,6 @@ export type CaseFilters = {
   status?: TestCaseStatus;
   requirement?: string;
 };
-
-const naturalOrder = new Intl.Collator('en', { numeric: true }).compare;
 
 @Injectable()
 export class CasesService {

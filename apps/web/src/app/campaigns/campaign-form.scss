@@ -1,0 +1,41 @@
+.campaign-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+  max-width: 900px;
+
+  .wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .campaign-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.selection {
+  grid-column: 1 / -1;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 8px 0 16px;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.hint {
+  color: var(--mat-sys-on-surface-variant);
+  margin: 4px 0;
+}
+
+.ids {
+  word-break: break-word;
+}
+
+.actions {
+  grid-column: 1 / -1;
+}

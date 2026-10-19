@@ -10,7 +10,7 @@ export async function resetDatabase(): Promise<void> {
   await client.connect();
   try {
     await client.query(
-      'TRUNCATE "Step", "TestCaseVersion", "TestCase", "Requirement", "ImportRevision" RESTART IDENTITY CASCADE',
+      'TRUNCATE "ExecutionStatusChange", "StepResult", "Execution", "Campaign", "Step", "TestCaseVersion", "TestCase", "Requirement", "ImportRevision" RESTART IDENTITY CASCADE',
     );
   } finally {
     await client.end();

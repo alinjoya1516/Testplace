@@ -30,14 +30,37 @@ enum ImportStatus {
   REJECTED
 }
 
+enum CampaignStatus {
+  DRAFT
+  RUNNING
+  CLOSED
+}
+
+enum ExecutionType {
+  MANUAL
+  AUTOMATED
+}
+
+/// Status of a step result and of an execution (EF-12).
+enum ResultStatus {
+  NOT_RUN
+  PASSED
+  FAILED
+  BLOCKED
+}
+
 model User {
-  id          String           @id @default(uuid())
-  directoryId String           @unique
-  name        String
-  email       String
-  role        Role             @default(READER)
-  createdAt   DateTime         @default(now())
-  imports     ImportRevision[]
+  id                 String                  @id @default(uuid())
+  directoryId        String                  @unique
+  name               String
+  email              String
+  role               Role                    @default(READER)
+  createdAt          DateTime                @default(now())
+  imports            ImportRevision[]
+  createdCampaigns   Campaign[]
+  assignedExecutions Execution[]             @relation("Assignee")
+  lockedExecutions   Execution[]             @relation("LockHolder")
+  statusChanges      ExecutionStatusChange[]
 }
 
 model Requirement {
@@ -74,6 +97,7 @@ model TestCase {
   currentVersion   TestCaseVersion?  @relation("CurrentVersion", fields: [currentVersionId], references: [id])
   currentVersionId String?           @unique
   versions         TestCaseVersion[] @relation("Versions")
+  executions       Execution[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -103,6 +127,7 @@ model TestCaseVersion {
   sourceFile     String
   sourceLine     Int
   steps          Step[]
+  executions     Execution[]
   createdAt      DateTime       @default(now())
 
   @@unique([testCaseId, number])
@@ -115,6 +140,100 @@ model Step {
   position       Int
   action         String
   expectedResult String
+  results        StepResult[]
 
   @@unique([versionId, position])
+}
+
+model Campaign {
+  id               Int            @id @default(autoincrement())
+  name             String
+  build            String
+  environment      String
+  /// @cucumber/tag-expressions syntax; empty selects every case.
+  tagExpression    String
+  includeDrafts    Boolean        @default(false)
+  plannedStart     DateTime?      @db.Date
+  plannedEnd       DateTime?      @db.Date
+  status           CampaignStatus @default(DRAFT)
+  /// Set at closing when the share of Blocked cases exceeds the threshold (EF-09).
+  needsReplay      Boolean        @default(false)
+  launchedAt       DateTime?
+  closedAt         DateTime?
+  createdBy        User           @relation(fields: [createdById], references: [id])
+  createdById      String
+  /// A duplicate reuses the assignments of its source when it is launched (EF-10).
+  duplicatedFrom   Campaign?      @relation("Duplicates", fields: [duplicatedFromId], references: [id])
+  duplicatedFromId Int?
+  duplicates       Campaign[]     @relation("Duplicates")
+  executions       Execution[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+/// One case of a launched campaign, frozen on the version current at launch (EF-07).
+model Execution {
+  id                Int                     @id @default(autoincrement())
+  campaign          Campaign                @relation(fields: [campaignId], references: [id])
+  campaignId        Int
+  testCase          TestCase                @relation(fields: [testCaseId], references: [id])
+  testCaseId        String
+  testCaseVersion   TestCaseVersion         @relation(fields: [testCaseVersionId], references: [id])
+  testCaseVersionId String
+  /// Order of the case in the campaign, used by "next case" (EF-19).
+  position          Int
+  type              ExecutionType           @default(MANUAL)
+  assignee          User?                   @relation("Assignee", fields: [assigneeId], references: [id])
+  assigneeId        String?
+  status            ResultStatus            @default(NOT_RUN)
+  /// True when the status was set by hand instead of derived from the steps (EF-13).
+  statusOverridden  Boolean                 @default(false)
+  /// Stopwatch (EF-15): time accumulated while paused, plus the running period since timerStartedAt.
+  elapsedSeconds    Int                     @default(0)
+  timerStartedAt    DateTime?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  /// Write lock (EF-17), renewed while the tab is open and released when it expires.
+  lockedBy          User?                   @relation("LockHolder", fields: [lockedById], references: [id])
+  lockedById        String?
+  lockExpiresAt     DateTime?
+  stepResults       StepResult[]
+  statusChanges     ExecutionStatusChange[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@unique([campaignId, testCaseId])
+  @@unique([campaignId, position])
+  @@index([assigneeId])
+}
+
+/// Created on the first change of a step; a missing result means Not run.
+model StepResult {
+  id            Int          @id @default(autoincrement())
+  execution     Execution    @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  executionId   Int
+  step          Step         @relation(fields: [stepId], references: [id])
+  stepId        String
+  status        ResultStatus @default(NOT_RUN)
+  comment       String?
+  /// Required when the status is Blocked (EF-16).
+  blockedReason String?
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([executionId, stepId])
+}
+
+/// Trace of the manual status changes of an execution (EF-13).
+model ExecutionStatusChange {
+  id          Int          @id @default(autoincrement())
+  execution   Execution    @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  executionId Int
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String
+  fromStatus  ResultStatus
+  toStatus    ResultStatus
+  /// False when the status goes back to being derived from the steps.
+  overridden  Boolean
+  reason      String?
+  createdAt   DateTime     @default(now())
 }
