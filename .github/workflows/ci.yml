@@ -30,7 +30,7 @@ jobs:
       TEST_DATABASE_URL: postgresql://testplace:testplace@localhost:5432/testplace_test
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
